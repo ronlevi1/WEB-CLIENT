@@ -1,0 +1,76 @@
+/* style.css */
+
+body {
+    background-color: #f9f9f9;
+}
+
+/* --- Sidebar (Playlist Page) --- */
+.sidebar {
+    background-color: #fff;
+    min-height: calc(100vh - 56px);
+    border-right: 1px solid #dee2e6;
+}
+
+.playlist-item {
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.playlist-item:hover {
+    background-color: #f1f1f1;
+}
+
+.playlist-item.active {
+    background-color: #e9ecef;
+    font-weight: bold;
+    color: #0d6efd;
+    border-left: 4px solid #0d6efd;
+}
+
+/* --- Video Cards --- */
+.video-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    background: white;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.card-title-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 3rem;
+}
+
+/* --- Star Rating --- */
+.star-rating i {
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #ffc107; /* Yellow */
+    transition: transform 0.2s;
+}
+
+.star-rating i:hover {
+    transform: scale(1.2);
+}
+
+.star-rating i.text-secondary {
+    color: #e4e5e9 !important; /* Grey for empty star */
+}
+
+/* --- Buttons --- */
+.btn-saved {
+    background-color: #e9ecef;
+    color: #6c757d;
+    border-color: #ced4da;
+    cursor: default;
+}
