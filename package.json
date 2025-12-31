@@ -1,0 +1,27 @@
+{
+  "name": "04_hw",
+  "version": "1.0.0",
+  "description": "",
+  "main": "login.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ronlevi1/WEB-CLIENT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ronlevi1/WEB-CLIENT/issues"
+  },
+  "homepage": "https://github.com/ronlevi1/WEB-CLIENT#readme",
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "multer": "^2.0.2"
+  }
+}

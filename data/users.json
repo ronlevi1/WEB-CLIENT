@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1767190210506,
+    "username": "rr11",
+    "email": "rr@example.com",
+    "password": "As1234",
+    "playlists": [
+      {
+        "name": "Songs",
+        "videos": [
+          {
+            "id": "6b6FBneAENQ",
+            "title": "Drenchill - Freed from Desire ft. Indiiana",
+            "thumbnail": "https://i.ytimg.com/vi/6b6FBneAENQ/hqdefault.jpg",
+            "channel": "Club Sounds",
+            "type": "youtube"
+          }
+        ]
+      }
+    ]
+  }
+]
