@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Playlist Modal Elements
     const playlistModalEl = document.getElementById('playlistModal');
-    const playlistModal = new bootstrap.Modal(playlistModalEl);
     const existingPlaylistSelect = document.getElementById('existingPlaylistSelect');
     const newPlaylistNameInput = document.getElementById('newPlaylistName');
     const saveToPlaylistBtn = document.getElementById('saveToPlaylistBtn');
@@ -43,10 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUser = JSON.parse(sessionUser);
 
         // 2. Update UI
-        userGreeting.textContent = `Hello, ${currentUser.username}`;
+        if(userGreeting) userGreeting.textContent = `Hello, ${currentUser.username}`;
 
-        // 3. Initialize User Data Structure if needed (First time setup for playlists)
-        if (!currentUser.playlists) {
+        // 3. Initialize User Data Structure if needed
+        if (!currentUser.playlists || !Array.isArray(currentUser.playlists)) {
             currentUser.playlists = [];
             updateUserStorage(currentUser);
         }
@@ -57,24 +56,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
 
     // Logout
-    logoutBtn.addEventListener('click', () => {
-        sessionStorage.removeItem('currentUser');
-        window.location.href = 'index.html';
-    });
+    if(logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        });
+    }
 
     // Search
-    searchBtn.addEventListener('click', performSearch);
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') performSearch();
-    });
+    if(searchBtn) searchBtn.addEventListener('click', performSearch);
+    if(searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+    }
 
     // Handle Video Modal Close (Stop video audio)
-    videoModalEl.addEventListener('hidden.bs.modal', () => {
-        videoFrame.src = '';
-    });
+    if(videoModalEl) {
+        videoModalEl.addEventListener('hidden.bs.modal', () => {
+            videoFrame.src = '';
+        });
+    }
 
     // Save to Playlist
-    saveToPlaylistBtn.addEventListener('click', handleSaveToPlaylist);
+    if(saveToPlaylistBtn) saveToPlaylistBtn.addEventListener('click', handleSaveToPlaylist);
 
 
     // --- Core Functions ---
@@ -87,12 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
         videoContainer.innerHTML = ''; // Clear previous results
 
         try {
-            // בדיקה אם המשתמש שכח לשים מפתח API
             if (YOUTUBE_API_KEY === 'YOUR_API_KEY_HERE' || YOUTUBE_API_KEY === '') {
-                throw new Error('Missing YouTube API Key. Please update the code with a valid key.');
+                throw new Error('Missing YouTube API Key.');
             }
 
-            // קריאה ל-YouTube API
             const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
             const data = await response.json();
             
@@ -120,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const videoId = item.id.videoId;
             const snippet = item.snippet;
             
-            // Create Card HTML
             const col = document.createElement('div');
             col.className = 'col';
             
@@ -143,10 +145,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            // Add Event Listener specifically for the "Add to Playlist" button
             const addBtn = col.querySelector('.add-playlist-btn');
             addBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent opening the video modal
+                e.stopPropagation();
                 openAddToPlaylistModal({
                     id: videoId,
                     title: snippet.title,
@@ -162,15 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Modal Logic ---
 
-    // 1. Play Video
     window.openVideo = function(videoId, title) {
         videoModalLabel.textContent = title;
-        // Autoplay enabled
         videoFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
         videoModal.show();
     };
 
-    // 2. Open Playlist Modal
     function openAddToPlaylistModal(videoObj) {
         currentSelectedVideo = videoObj;
         
@@ -178,8 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
         newPlaylistNameInput.value = '';
         existingPlaylistSelect.innerHTML = '<option value="" selected>-- Choose a playlist --</option>';
 
-        // Populate Existing Playlists (Sync from currentUser)
-        if (currentUser.playlists && currentUser.playlists.length > 0) {
+        // Populate Existing Playlists
+        // מוודאים שוב שזה מערך לפני שעושים forEach
+        if (currentUser.playlists && Array.isArray(currentUser.playlists)) {
             currentUser.playlists.forEach(pl => {
                 const option = document.createElement('option');
                 option.value = pl.name;
@@ -188,10 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        playlistModal.show();
+        // פתיחה בטוחה של המודל
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(playlistModalEl);
+        modalInstance.show();
     }
 
-    // 3. Save Logic
     function handleSaveToPlaylist() {
         const selectedExisting = existingPlaylistSelect.value;
         const newPlaylistName = newPlaylistNameInput.value.trim();
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Fetch fresh data from localStorage to avoid conflicts
+        // 1. Fetch fresh data
         const allUsers = JSON.parse(localStorage.getItem('users')) || [];
         const userIndex = allUsers.findIndex(u => u.id === currentUser.id);
         
@@ -210,16 +210,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let userPlaylists = allUsers[userIndex].playlists || [];
+        // 2. Safe Array Check (התיקון הקריטי)
+        let userPlaylists = allUsers[userIndex].playlists;
+        if (!userPlaylists || !Array.isArray(userPlaylists)) {
+            userPlaylists = [];
+        }
+
         let targetPlaylistName = '';
 
         if (newPlaylistName) {
-            // Check if already exists
+            // Create New
             if (userPlaylists.some(p => p.name.toLowerCase() === newPlaylistName.toLowerCase())) {
                 alert('A playlist with this name already exists.');
                 return;
             }
-            // Create New
             userPlaylists.push({
                 name: newPlaylistName,
                 createdAt: new Date().toISOString(),
@@ -229,36 +233,36 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Add to Existing
             const playlist = userPlaylists.find(p => p.name === selectedExisting);
-            // Check if video already in playlist
-            if (playlist.videos.some(v => v.id === currentSelectedVideo.id)) {
-                alert('This video is already in the selected playlist.');
-                return;
+            if (playlist) {
+                if (playlist.videos.some(v => v.id === currentSelectedVideo.id)) {
+                    alert('This video is already in the selected playlist.');
+                    return;
+                }
+                playlist.videos.push(currentSelectedVideo);
+                targetPlaylistName = selectedExisting;
             }
-            playlist.videos.push(currentSelectedVideo);
-            targetPlaylistName = selectedExisting;
         }
 
-        // UPDATE STORAGE (Both Local and Session)
+        // 3. Update Storage
         allUsers[userIndex].playlists = userPlaylists;
         localStorage.setItem('users', JSON.stringify(allUsers));
         
-        // Update Session User
         currentUser.playlists = userPlaylists;
         sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-        // UI Feedback
-        playlistModal.hide();
+        // 4. Safe Close (התיקון הקריטי למודל)
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(playlistModalEl);
+        modalInstance.hide();
+
+        // 5. Feedback
         showToast(`Added to "${targetPlaylistName}" successfully!`);
     }
 
     // --- Helpers ---
 
     function showLoading(isLoading) {
-        if (isLoading) {
-            loadingSpinner.classList.remove('d-none');
-        } else {
-            loadingSpinner.classList.add('d-none');
-        }
+        if (isLoading) loadingSpinner.classList.remove('d-none');
+        else loadingSpinner.classList.add('d-none');
     }
 
     function showToast(message) {
@@ -278,11 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function escapeHtml(text) {
         if (!text) return text;
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 });
